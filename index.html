@@ -3,119 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <title>VELZE News</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { 
-      font-family: "Segoe UI", Arial, sans-serif; 
-      background: #f5f5f5; 
-      margin: 0; 
-      padding: 0; 
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
     }
     header {
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
+      background: #111;
+      color: #fff;
+      padding: 20px;
       text-align: center;
-      padding: 30px 15px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2.5rem;
+      font-size: 24px;
+      font-weight: bold;
       letter-spacing: 2px;
     }
-    .news-container { 
-      max-width: 900px; 
-      margin: 30px auto; 
-      padding: 15px; 
+    .news-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 10px;
     }
-    .news-item { 
-      background: #fff; 
-      padding: 20px; 
-      margin-bottom: 20px; 
-      border-radius: 15px; 
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1); 
-      transition: 0.3s ease; 
-      overflow: hidden;
+    .news-item {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: 0.3s;
     }
-    .news-item:hover { 
-      transform: translateY(-5px); 
-      box-shadow: 0 6px 16px rgba(0,0,0,0.15); 
+    .news-item:hover {
+      transform: translateY(-3px);
     }
-    .news-item img { 
-      width: 100%; 
-      border-radius: 12px; 
-      margin-bottom: 15px; 
+    .news-item h3 {
+      margin: 0 0 10px;
+      color: #222;
     }
-    .news-item h3 { 
-      margin: 0 0 10px; 
-      color: #222; 
-      font-size: 1.4rem;
+    .news-item a {
+      color: #007bff;
+      text-decoration: none;
     }
-    .news-item p { 
-      color: #555; 
-      font-size: 0.95rem; 
-      line-height: 1.5; 
+    .news-item a:hover {
+      text-decoration: underline;
     }
-    .news-item a { 
-      color: #007bff; 
-      text-decoration: none; 
-      font-weight: bold; 
-    }
-    .news-item a:hover { 
-      text-decoration: underline; 
-    }
-    footer {
-      background: #222;
-      color: #ccc;
+    .loading {
       text-align: center;
-      padding: 20px 10px;
-      font-size: 0.9rem;
-      margin-top: 30px;
+      padding: 20px;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>VELZE News</h1>
-    <p>Latest Technology Headlines from Google News</p>
-  </header>
+  <header>VELZE NEWS</header>
 
-  <div class="news-container" id="news">
-    <p style="text-align:center; color:#555;">Loading news...</p>
-  </div>
-
-  <footer>
-    &copy; 2025 VELZE. All rights reserved.
-  </footer>
+  <div class="news-container" id="news"></div>
+  <div class="loading" id="loading">Loading more news...</div>
 
   <script>
-    async function loadRSS() {
-      const rssUrl = "https://news.google.com/rss/search?q=technology&hl=en-PK&gl=PK&ceid=PK:en";
-      const apiUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
+    const rssUrl = "https://news.google.com/rss/search?q=technology&hl=en-PK&gl=PK&ceid=PK:en";
+    const apiUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
 
-      try {
-        const res = await fetch(apiUrl);
-        const data = await res.json();
+    let allNews = [];
+    let index = 0;
+    const batchSize = 5; // ek baar me kitni news dikhani hai
 
-        let html = "";
-        data.items.forEach(item => {
-          html += `
-            <div class="news-item">
-              ${item.enclosure && item.enclosure.link ? `<img src="${item.enclosure.link}" alt="News Image" />` : ""}
-              <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
-              <p><strong>${new Date(item.pubDate).toLocaleDateString()}</strong></p>
-              <p>${item.description}</p>
-            </div>
-          `;
-        });
+    async function fetchNews() {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+      allNews = data.items;
+      loadMore();
+    }
 
-        document.getElementById("news").innerHTML = html;
-      } catch (e) {
-        document.getElementById("news").innerHTML = "<p style='color:red;'>Error loading news. Try again later.</p>";
+    function loadMore() {
+      let html = "";
+      for (let i = index; i < index + batchSize && i < allNews.length; i++) {
+        const item = allNews[i];
+        html += `
+          <div class="news-item">
+            <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+            <p>${item.pubDate}</p>
+          </div>
+        `;
+      }
+      document.getElementById("news").insertAdjacentHTML("beforeend", html);
+      index += batchSize;
+
+      if (index >= allNews.length) {
+        document.getElementById("loading").innerText = "No more news available.";
       }
     }
 
-    loadRSS();
+    // Infinite Scroll
+    window.addEventListener("scroll", () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+        loadMore();
+      }
+    });
+
+    fetchNews();
   </script>
 </body>
 </html>
