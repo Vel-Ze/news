@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>VELZE News</title>
+  <title>VELZE News Optimized</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -15,7 +15,6 @@
       --text-color: #eee;
       --card-bg: #1e1e1e;
     }
-
     body {
       font-family: Arial, sans-serif;
       background: var(--bg-color);
@@ -58,6 +57,8 @@
       padding: 10px;
     }
     .news-item {
+      display: flex;
+      gap: 15px;
       background: var(--card-bg);
       padding: 15px;
       margin-bottom: 20px;
@@ -65,28 +66,21 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       transition: transform 0.3s;
     }
-    .news-item:hover {
-      transform: translateY(-3px);
+    .news-item:hover { transform: translateY(-3px); }
+    .news-item img {
+      width: 150px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: #ccc;
     }
-    .news-item h3 {
-      margin: 0 0 10px;
-    }
-    .news-item a {
-      color: #007bff;
-      text-decoration: none;
-      word-break: break-word;
-    }
-    .news-item a:hover {
-      text-decoration: underline;
-    }
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #777;
-    }
-    @media (max-width: 600px) {
-      header { font-size: 18px; }
-      .news-item { padding: 12px; }
+    .news-item h3 { margin: 0 0 10px; font-size: 1.1rem; }
+    .news-item a { color: #007bff; text-decoration: none; }
+    .news-item a:hover { text-decoration: underline; }
+    .loading { text-align: center; padding: 20px; color: #777; }
+    @media(max-width:600px){
+      .news-item { flex-direction: column; }
+      .news-item img { width: 100%; height: 180px; }
     }
   </style>
 </head>
@@ -100,54 +94,67 @@
   <div class="loading" id="loading">Loading more news...</div>
 
   <script>
-    const topics = ["technology", "science", "world", "business", "sports"];
-    let topicIndex = 0;
+    const rssFeeds = [
+      "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
+      "https://feeds.bbci.co.uk/news/technology/rss.xml",
+      "https://techcrunch.com/feed/"
+    ];
+
+    let currentFeed = 0;
     let allNews = [];
+    let displayedLinks = new Set(); // duplicate check
     let index = 0;
     const batchSize = 5;
 
-    function getApiUrl(topic) {
-      const rssUrl = `https://news.google.com/rss/search?q=${topic}&hl=en-PK&gl=PK&ceid=PK:en`;
-      return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
-    }
-
     async function fetchNews() {
-      const res = await fetch(getApiUrl(topics[topicIndex]));
+      const feedUrl = rssFeeds[currentFeed];
+      const apiUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
+
+      const res = await fetch(apiUrl);
       const data = await res.json();
-      allNews = (data.items || []).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate)); // sort latest → old
-      index = 0;
+
+      let newItems = (data.items || []).sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+      // Filter duplicates
+      newItems = newItems.filter(item => !displayedLinks.has(item.link));
+      newItems.forEach(item => displayedLinks.add(item.link));
+
+      allNews = allNews.concat(newItems);
       loadMore();
     }
 
     function loadMore() {
+      if(index >= allNews.length){
+        currentFeed = (currentFeed + 1) % rssFeeds.length;
+        fetchNews();
+        return;
+      }
+
       let html = "";
-      for (let i = index; i < index + batchSize && i < allNews.length; i++) {
+      for(let i=index; i<index+batchSize && i<allNews.length; i++){
         const item = allNews[i];
+        const image = item.enclosure ? item.enclosure.link : "https://via.placeholder.com/150x100?text=Image+Not+Available";
+
         html += `
           <div class="news-item">
-            <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
-            <p>${new Date(item.pubDate).toLocaleString()}</p>
+            <img loading="lazy" src="${image}" alt="news image">
+            <div>
+              <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+              <p>${new Date(item.pubDate).toLocaleString()}</p>
+            </div>
           </div>
         `;
       }
       document.getElementById("news").insertAdjacentHTML("beforeend", html);
       index += batchSize;
-
-      if (index >= allNews.length) {
-        topicIndex = (topicIndex + 1) % topics.length;
-        fetchNews();
-      }
     }
 
     window.addEventListener("scroll", () => {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+      if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 100){
         loadMore();
       }
     });
 
-    function toggleDark() {
-      document.body.classList.toggle("dark");
-    }
+    function toggleDark(){ document.body.classList.toggle("dark"); }
 
     fetchNews();
   </script>
