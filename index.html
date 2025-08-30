@@ -1,0 +1,189 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VELZE News</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: #0f172a;
+      color: white;
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      color: #38bdf8;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      position: relative;
+    }
+    nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      left: 0;
+      bottom: -4px;
+      background: #38bdf8;
+      transition: width 0.3s;
+    }
+    nav a:hover::after {
+      width: 100%;
+    }
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      animation: fadeIn 1.5s ease;
+    }
+    .hero h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #38bdf8;
+    }
+    .news-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      padding: 3rem 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .news-card {
+      background: #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+      animation: fadeInUp 1.5s;
+    }
+    .news-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 25px rgba(56, 189, 248, 0.3);
+    }
+    .news-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+    .news-card .content {
+      padding: 1rem;
+    }
+    .news-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: #38bdf8;
+    }
+    .news-card p {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      background: #38bdf8;
+      color: #0f172a;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      background: #0ea5e9;
+      color: #fff;
+    }
+    footer {
+      background: #1e293b;
+      text-align: center;
+      padding: 1rem;
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+    @keyframes fadeInUp {
+      from {transform: translateY(40px); opacity: 0;}
+      to {transform: translateY(0); opacity: 1;}
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>VELZE News</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/news/">News</a>
+    </nav>
+  </header>  <section class="hero">
+    <h2>Latest Updates & News</h2>
+    <p>Stay connected with the latest stories, insights, and innovations from VELZE.</p>
+  </section>  <section class="news-container">
+    <div class="news-card">
+      <img src="https://source.unsplash.com/400x200/?technology" alt="News 1" />
+      <div class="content">
+        <h3>VELZE Launches New Project</h3>
+        <p>Discover our latest digital innovation aimed at transforming the future.</p>
+        <a href="#" class="btn">Read More</a>
+      </div>
+    </div><div class="news-card">
+  <img src="https://source.unsplash.com/400x200/?innovation" alt="News 2" />
+  <div class="content">
+    <h3>Innovation Hub 2025</h3>
+    <p>VELZE is creating a hub for innovators, dreamers, and doers.</p>
+    <a href="#" class="btn">Read More</a>
+  </div>
+</div>
+
+<div class="news-card">
+  <img src="https://source.unsplash.com/400x200/?startup" alt="News 3" />
+  <div class="content">
+    <h3>Community Growth</h3>
+    <p>Join our growing community as we expand globally with exciting projects.</p>
+    <a href="#" class="btn">Read More</a>
+  </div>
+</div>
+
+  </section>  <footer>
+    <p>© 2025 VELZE. All Rights Reserved.</p>
+  </footer>  <script>
+    // Smooth fade-in for cards on scroll
+    const cards = document.querySelectorAll('.news-card');
+    const revealOnScroll = () => {
+      const triggerBottom = window.innerHeight * 0.85;
+      cards.forEach(card => {
+        const cardTop = card.getBoundingClientRect().top;
+        if(cardTop < triggerBottom){
+          card.style.opacity = 1;
+          card.style.transform = 'translateY(0)';
+        }
+      });
+    };
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll();
+  </script></body>
+</html>
