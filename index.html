@@ -84,8 +84,6 @@
       padding: 20px;
       color: #777;
     }
-
-    /* Mobile */
     @media (max-width: 600px) {
       header { font-size: 18px; }
       .news-item { padding: 12px; }
@@ -116,7 +114,7 @@
     async function fetchNews() {
       const res = await fetch(getApiUrl(topics[topicIndex]));
       const data = await res.json();
-      allNews = data.items || [];
+      allNews = (data.items || []).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate)); // sort latest → old
       index = 0;
       loadMore();
     }
