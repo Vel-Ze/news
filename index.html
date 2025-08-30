@@ -3,21 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <title>VELZE News</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --text-color: #111;
+      --card-bg: #fff;
+    }
+    body.dark {
+      --bg-color: #111;
+      --text-color: #eee;
+      --card-bg: #1e1e1e;
+    }
+
     body {
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background: var(--bg-color);
+      color: var(--text-color);
       margin: 0;
       padding: 0;
+      transition: background 0.3s, color 0.3s;
     }
     header {
-      background: #111;
+      background: #007bff;
       color: #fff;
-      padding: 20px;
+      padding: 15px;
       text-align: center;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
       letter-spacing: 2px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .toggle-btn {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      background: #fff;
+      color: #007bff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    body.dark .toggle-btn {
+      background: #333;
+      color: #eee;
     }
     .news-container {
       max-width: 800px;
@@ -25,23 +58,23 @@
       padding: 10px;
     }
     .news-item {
-      background: #fff;
+      background: var(--card-bg);
       padding: 15px;
       margin-bottom: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: 0.3s;
+      transition: transform 0.3s;
     }
     .news-item:hover {
       transform: translateY(-3px);
     }
     .news-item h3 {
       margin: 0 0 10px;
-      color: #222;
     }
     .news-item a {
       color: #007bff;
       text-decoration: none;
+      word-break: break-word;
     }
     .news-item a:hover {
       text-decoration: underline;
@@ -49,28 +82,42 @@
     .loading {
       text-align: center;
       padding: 20px;
-      color: #555;
+      color: #777;
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      header { font-size: 18px; }
+      .news-item { padding: 12px; }
     }
   </style>
 </head>
 <body>
-  <header>VELZE NEWS</header>
+  <header>
+    VELZE NEWS
+    <button class="toggle-btn" onclick="toggleDark()">🌙</button>
+  </header>
 
   <div class="news-container" id="news"></div>
   <div class="loading" id="loading">Loading more news...</div>
 
   <script>
-    const rssUrl = "https://news.google.com/rss/search?q=technology&hl=en-PK&gl=PK&ceid=PK:en";
-    const apiUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
-
+    const topics = ["technology", "science", "world", "business", "sports"];
+    let topicIndex = 0;
     let allNews = [];
     let index = 0;
-    const batchSize = 5; // ek baar me kitni news dikhani hai
+    const batchSize = 5;
+
+    function getApiUrl(topic) {
+      const rssUrl = `https://news.google.com/rss/search?q=${topic}&hl=en-PK&gl=PK&ceid=PK:en`;
+      return "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
+    }
 
     async function fetchNews() {
-      const res = await fetch(apiUrl);
+      const res = await fetch(getApiUrl(topics[topicIndex]));
       const data = await res.json();
-      allNews = data.items;
+      allNews = data.items || [];
+      index = 0;
       loadMore();
     }
 
@@ -81,7 +128,7 @@
         html += `
           <div class="news-item">
             <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
-            <p>${item.pubDate}</p>
+            <p>${new Date(item.pubDate).toLocaleString()}</p>
           </div>
         `;
       }
@@ -89,16 +136,20 @@
       index += batchSize;
 
       if (index >= allNews.length) {
-        document.getElementById("loading").innerText = "No more news available.";
+        topicIndex = (topicIndex + 1) % topics.length;
+        fetchNews();
       }
     }
 
-    // Infinite Scroll
     window.addEventListener("scroll", () => {
       if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
         loadMore();
       }
     });
+
+    function toggleDark() {
+      document.body.classList.toggle("dark");
+    }
 
     fetchNews();
   </script>
