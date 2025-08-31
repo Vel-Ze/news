@@ -1,139 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>VELZE News</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --bg-color: #f5f5f5;
-      --text-color: #111;
-      --card-bg: #fff;
-    }
-    body.dark {
-      --bg-color: #111;
-      --text-color: #eee;
-      --card-bg: #1e1e1e;
-    }
-    body {
-      font-family: Arial, sans-serif;
-      background: var(--bg-color);
-      color: var(--text-color);
-      margin: 0;
-      padding: 0;
-      transition: background 0.3s, color 0.3s;
-    }
-    header {
-      background: #007bff;
-      color: #fff;
-      padding: 15px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      letter-spacing: 2px;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    .toggle-btn {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-      background: #fff;
-      color: #007bff;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    body.dark .toggle-btn {
-      background: #333;
-      color: #eee;
-    }
-    .news-container {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 10px;
-    }
-    .news-item {
-      display: flex;
-      gap: 15px;
-      background: var(--card-bg);
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-    }
-    .news-item:hover { transform: translateY(-3px); }
-    .news-item img {
-      width: 150px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 10px;
-      background: #ccc;
-    }
-    .news-item h3 { margin: 0 0 10px; font-size: 1.1rem; }
-    .news-item a { color: #007bff; text-decoration: none; }
-    .news-item a:hover { text-decoration: underline; }
-    .loading { text-align: center; padding: 20px; color: #777; }
-    @media(max-width:600px){
-      .news-item { flex-direction: column; }
-      .news-item img { width: 100%; height: 180px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>VELZE News</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+  --bg-color: #f5f5f5;
+  --text-color: #111;
+  --card-bg: #fff;
+}
+body.dark {
+  --bg-color: #111;
+  --text-color: #eee;
+  --card-bg: #1e1e1e;
+}
+body {
+  font-family: Arial, sans-serif;
+  background: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  transition: background 0.3s, color 0.3s;
+}
+header {
+  background: #007bff;
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+.toggle-btn {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  background: #fff;
+  color: #007bff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+body.dark .toggle-btn {
+  background: #333;
+  color: #eee;
+}
+.news-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 10px;
+}
+.news-item {
+  display: flex;
+  gap: 15px;
+  background: var(--card-bg);
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+}
+.news-item:hover { transform: translateY(-3px); }
+.news-item img {
+  width: 150px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #ccc;
+}
+.news-item h3 { margin: 0 0 10px; font-size: 1.1rem; }
+.news-item a { color: #007bff; text-decoration: none; }
+.news-item a:hover { text-decoration: underline; }
+.loading { text-align: center; padding: 20px; color: #777; }
+@media(max-width:600px){
+  .news-item { flex-direction: column; }
+  .news-item img { width: 100%; height: 180px; }
+}
+</style>
 </head>
 <body>
-  <header>
-    VELZE NEWS
-    <button class="toggle-btn" onclick="toggleDark()">🌙</button>
-  </header>
+<header>
+VELZE NEWS
+<button class="toggle-btn" onclick="toggleDark()">🌙</button>
+</header>
 
-  <div class="news-container" id="news"></div>
-  <div class="loading" id="loading">Loading news...</div>
+<div class="news-container" id="news"></div>
+<div class="loading" id="loading">Loading news...</div>
 
-  <script>
-    let allNews = [];
-    let index = 0;
-    const batchSize = 5;
+<script>
+const rssFeeds = [
+  "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
+  "https://feeds.bbci.co.uk/news/technology/rss.xml",
+  "https://techcrunch.com/feed/"
+];
 
-    async function fetchNews() {
-      const res = await fetch('/api/news');
-      const data = await res.json();
-      allNews = data;
-      loadMore();
+let allNews = [];
+let displayedLinks = new Set();
+let index = 0;
+const batchSize = 5;
+const PLACEHOLDER_IMAGE = "https://via.placeholder.com/150x100?text=Image+Not+Available";
+
+async function fetchRSS(url){
+  const apiUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url);
+  try {
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    return (data.items || []);
+  } catch(e) {
+    console.error("Error fetching RSS:", e);
+    return [];
+  }
+}
+
+async function loadFeeds() {
+  for(let feed of rssFeeds){
+    let items = await fetchRSS(feed);
+    items.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+    for(let item of items){
+      if(displayedLinks.has(item.link)) continue;
+      displayedLinks.add(item.link);
+      allNews.push({
+        title: item.title,
+        link: item.link,
+        pubDate: item.pubDate,
+        image: item.enclosure ? item.enclosure.link : PLACEHOLDER_IMAGE
+      });
     }
+  }
+  loadMore();
+}
 
-    function loadMore() {
-      if(index >= allNews.length) return;
+function loadMore(){
+  if(index >= allNews.length){
+    document.getElementById("loading").innerText = "No more news available";
+    return;
+  }
+  let html = "";
+  for(let i=index; i<index+batchSize && i<allNews.length; i++){
+    const item = allNews[i];
+    html += `
+      <div class="news-item">
+        <img loading="lazy" src="${item.image}" alt="news image">
+        <div>
+          <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+          <p>${new Date(item.pubDate).toLocaleString()}</p>
+        </div>
+      </div>
+    `;
+  }
+  document.getElementById("news").insertAdjacentHTML("beforeend", html);
+  index += batchSize;
+}
 
-      let html = "";
-      for(let i=index; i<index+batchSize && i<allNews.length; i++){
-        const item = allNews[i];
-        html += `
-          <div class="news-item">
-            <img loading="lazy" src="${item.image}" alt="news image">
-            <div>
-              <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
-              <p>${new Date(item.pubDate).toLocaleString()}</p>
-            </div>
-          </div>
-        `;
-      }
-      document.getElementById("news").insertAdjacentHTML("beforeend", html);
-      index += batchSize;
-    }
+window.addEventListener("scroll", ()=>{
+  if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 100){
+    loadMore();
+  }
+});
 
-    window.addEventListener("scroll", () => {
-      if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 100){
-        loadMore();
-      }
-    });
+function toggleDark(){ document.body.classList.toggle("dark"); }
 
-    function toggleDark(){ document.body.classList.toggle("dark"); }
-
-    fetchNews();
-  </script>
+loadFeeds();
+</script>
 </body>
 </html>
