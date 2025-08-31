@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>VELZE News Optimized</title>
+  <title>VELZE News</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -91,52 +91,29 @@
   </header>
 
   <div class="news-container" id="news"></div>
-  <div class="loading" id="loading">Loading more news...</div>
+  <div class="loading" id="loading">Loading news...</div>
 
   <script>
-    const rssFeeds = [
-      "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
-      "https://feeds.bbci.co.uk/news/technology/rss.xml",
-      "https://techcrunch.com/feed/"
-    ];
-
-    let currentFeed = 0;
     let allNews = [];
-    let displayedLinks = new Set(); // duplicate check
     let index = 0;
     const batchSize = 5;
 
     async function fetchNews() {
-      const feedUrl = rssFeeds[currentFeed];
-      const apiUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
-
-      const res = await fetch(apiUrl);
+      const res = await fetch('/api/news');
       const data = await res.json();
-
-      let newItems = (data.items || []).sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
-      // Filter duplicates
-      newItems = newItems.filter(item => !displayedLinks.has(item.link));
-      newItems.forEach(item => displayedLinks.add(item.link));
-
-      allNews = allNews.concat(newItems);
+      allNews = data;
       loadMore();
     }
 
     function loadMore() {
-      if(index >= allNews.length){
-        currentFeed = (currentFeed + 1) % rssFeeds.length;
-        fetchNews();
-        return;
-      }
+      if(index >= allNews.length) return;
 
       let html = "";
       for(let i=index; i<index+batchSize && i<allNews.length; i++){
         const item = allNews[i];
-        const image = item.enclosure ? item.enclosure.link : "https://via.placeholder.com/150x100?text=Image+Not+Available";
-
         html += `
           <div class="news-item">
-            <img loading="lazy" src="${image}" alt="news image">
+            <img loading="lazy" src="${item.image}" alt="news image">
             <div>
               <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
               <p>${new Date(item.pubDate).toLocaleString()}</p>
